@@ -220,6 +220,30 @@ bool hasEmptyTile(int** board) {
     return false;
 }
 
+bool gameOver(int** board) {
+    for (size_t i = 0; i < dimension; i++) {
+        for (size_t j = 0; j < dimension; j++) {
+
+            // there is an empty tile
+            if (board[i][j] == 0) {
+                return false;
+            }
+
+            // there are two tiles below each other that are equal
+            if((i != (dimension - 1)) && (board[i][j] == board[i + 1][j])) {
+                return false;
+            }
+
+            // there are two tiles above each other that are equal
+            if((j != (dimension - 1)) && (board[i][j] == board[i][j + 1])) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+
 // TODO cout score
 void makeMove(char key, int** board) {
     bool hasChanged = false;
@@ -311,7 +335,6 @@ int main() {
     cin >> menu;
     cout << endl;
 
-
     switch (menu) {
         case 1: {
             startGame(nickname);
@@ -332,6 +355,10 @@ int main() {
                 makeMove(key, board);
 
                 if (key == 'q') {
+                    break;
+                }
+                if(gameOver(board)){
+                    cout << "Game over!" << endl;
                     break;
                 }
             }
