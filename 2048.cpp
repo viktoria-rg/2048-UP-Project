@@ -5,6 +5,7 @@ using namespace std;
 
 size_t dimension;
 int score = 0;
+bool gameWon = false;
 
 void startGame(char nickname[]) {
     cout << "Enter your nickname:" << endl;
@@ -16,6 +17,10 @@ void startGame(char nickname[]) {
         cout << endl << "Please, enter dimension between 4 and 10 included" << endl;
         cin >> dimension;
     }
+
+    // update them in case of starting a new game
+    gameWon = false;
+    score = 0;
 }
 
 int** createMatrix(size_t rows, size_t columns){
@@ -42,15 +47,16 @@ void deleteMatrix (int** board, size_t rows) {
     delete[] board;
 }
 
-
 void addRandomNum(int** board) {
         size_t k, l;
         size_t freePosCount = 0;
         size_t maxFreePositions = dimension * dimension;
+
         size_t* freePositionsI = new size_t[maxFreePositions];
         size_t* freePositionsJ = new size_t[maxFreePositions];
 
         int numsToFill[] = {2, 4};
+
         for (size_t i = 0; i < dimension; i++) {
             for (size_t j = 0; j < dimension; j++) {
                 if (board[i][j] == 0) {
@@ -68,15 +74,14 @@ void addRandomNum(int** board) {
             return;
         }
 
-        else {
-            size_t randomIndex = rand() % freePosCount;
-            k = freePositionsI[randomIndex];
-            l = freePositionsJ[randomIndex];
 
-            size_t randomNumIndex = rand() % 2;
+        size_t randomIndex = rand() % freePosCount;
+        k = freePositionsI[randomIndex];
+        l = freePositionsJ[randomIndex];
 
-            board[k][l] = numsToFill[randomNumIndex];
-        }
+        size_t randomNumIndex = rand() % 2;
+        board[k][l] = numsToFill[randomNumIndex];
+
 
         delete[] freePositionsI;
         delete[] freePositionsJ;
@@ -106,7 +111,6 @@ void slideUp(int** board, bool& hasChanged) {
     }
 }
 
-
 void mergeUp(int** board, bool& hasChanged) {
     for (int j = 0; j < dimension; j++) {
         for (int i = 0; i < dimension - 1; i++) {
@@ -114,6 +118,10 @@ void mergeUp(int** board, bool& hasChanged) {
                 board[i][j] *= 2;
                 board[i + 1][j] = 0;
                 hasChanged = true;
+
+                if(board[i][j] == 2048){
+                    gameWon = true;
+                }
             }
         }
     }
@@ -144,6 +152,10 @@ void mergeDown(int** board, bool& hasChanged) {
                 board[i][j] *= 2;
                 board[i - 1][j] = 0;
                 hasChanged = true;
+
+                if(board[i][j] == 2048){
+                    gameWon = true;
+                }
             }
         }
     }
@@ -153,11 +165,13 @@ void mergeDown(int** board, bool& hasChanged) {
 void slideLeft(int** board, bool& hasChanged) {
     for (int i = 0; i < dimension; i++) {
         for (int j = 0; j < dimension; j++) {
+
             if (board[i][j] == 0) {
                 for (int k = j + 1; k < dimension; k++) {
                     if (board[i][k]) {
                         board[i][j] = board[i][k];
                         board[i][k] = 0;
+
                         hasChanged = true;
                         break;
                     }
@@ -174,6 +188,10 @@ void mergeRight(int** board, bool& hasChanged) {
                 board[i][j] *= 2;
                 board[i][j - 1] = 0;
                 hasChanged = true;
+
+                if(board[i][j] == 2048){
+                    gameWon = true;
+                }
             }
         }
     }
@@ -186,6 +204,10 @@ void mergeLeft(int** board, bool& hasChanged) {
                 board[i][j] *= 2;
                 board[i][j + 1] = 0;
                 hasChanged = true;
+
+                if(board[i][j] == 2048){
+                    gameWon = true;
+                }
             }
         }
     }
@@ -196,10 +218,12 @@ void slideRight(int** board, bool& hasChanged) {
     for (int i = 0; i < dimension; i++) {
         for (int j = dimension - 1; j >= 0; j--) {
             if (board[i][j] == 0) {
+
                 for (int k = j - 1; k >= 0; k--) {
                     if (board[i][k]) {
                         board[i][j] = board[i][k];
                         board[i][k] = 0;
+                        hasChanged = true;
                         break;
                     }
                 }
@@ -346,6 +370,7 @@ int main() {
             addRandomNum(board);
 
             // as long as there is an input as a command for moving
+            // and the game is not over
             while (true) {
                 cout << endl;
                 printBoard(board);
@@ -357,8 +382,14 @@ int main() {
                 if (key == 'q') {
                     break;
                 }
+
                 if(gameOver(board)){
                     cout << "Game over!" << endl;
+                    break;
+                }
+
+                if(gameWon){
+                    cout << "Game won!" << endl;
                     break;
                 }
             }
