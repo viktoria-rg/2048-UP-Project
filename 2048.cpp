@@ -1,5 +1,4 @@
 #include <iostream>
-#include <vector>
 #include <iomanip>
 
 using namespace std;
@@ -19,36 +18,68 @@ void startGame(char nickname[]) {
     }
 }
 
-// TODO fix the logic
-void addRandomNum(int** board) {
-    size_t i, j;
-    vector<pair<size_t, size_t>> freePositions;
+int** createMatrix(size_t rows, size_t columns){
+    int** matrix = new int*[rows];
 
-    vector<int> numsToFill = {2, 4};
+    for (size_t i = 0; i < rows; i++) {
+        matrix[i] = new int[columns];
+    }
 
-    for (i = 0; i < dimension; i++) {
-        for (j = 0; j < dimension; j++) {
-            if (board[i][j] == 0) {
-                freePositions.push_back(make_pair(i, j));
-            }
+    for (size_t i = 0; i < rows; i++) {
+        for (size_t j = 0; j < columns; j++) {
+            matrix[i][j] = 0;
         }
     }
 
-    // TODO logic when board is already filled
-    if (freePositions.empty()) {
-        //
+    return matrix;
+}
+
+// free dynamically allocated memory
+void deleteMatrix (int** board, size_t rows) {
+    for (size_t i = 0; i < rows; i++) {
+        delete[] board[i];
     }
+    delete[] board;
+}
 
-        // TODO  other random function??
-    else {
-        size_t randomIndex = rand() % freePositions.size();
-        i = freePositions[randomIndex].first;
-        j = freePositions[randomIndex].second;
 
-        size_t randomNumIndex = rand() % numsToFill.size();
+void addRandomNum(int** board) {
+        size_t k, l;
+        size_t freePosCount = 0;
+        size_t maxFreePositions = dimension * dimension;
+        size_t* freePositionsI = new size_t[maxFreePositions];
+        size_t* freePositionsJ = new size_t[maxFreePositions];
 
-        board[i][j] = numsToFill[randomNumIndex];
-    }
+        int numsToFill[] = {2, 4};
+        for (size_t i = 0; i < dimension; i++) {
+            for (size_t j = 0; j < dimension; j++) {
+                if (board[i][j] == 0) {
+                    freePositionsI[freePosCount] = i;
+                    freePositionsJ[freePosCount] = j;
+                    freePosCount++;
+                }
+            }
+        }
+
+        // the board is already filled
+        if (freePosCount == 0) {
+            delete[] freePositionsI;
+            delete[] freePositionsJ;
+            return;
+        }
+
+        else {
+            size_t randomIndex = rand() % freePosCount;
+            k = freePositionsI[randomIndex];
+            l = freePositionsJ[randomIndex];
+
+            size_t randomNumIndex = rand() % 2;
+
+            board[k][l] = numsToFill[randomNumIndex];
+        }
+
+        delete[] freePositionsI;
+        delete[] freePositionsJ;
 }
 
 void slideUp(int** board, bool& hasChanged) {
@@ -136,7 +167,7 @@ void slideLeft(int** board, bool& hasChanged) {
     }
 }
 
-void mergeLeft(int** board, bool& hasChanged) {
+void mergeRight(int** board, bool& hasChanged) {
     for (int i = 0; i < dimension; i++) {
         for (int j = dimension - 1; j > 0; j--) {
             if (board[i][j] && board[i][j] == board[i][j - 1]) {
@@ -148,7 +179,7 @@ void mergeLeft(int** board, bool& hasChanged) {
     }
 }
 
-void mergeRight(int** board, bool& hasChanged) {
+void mergeLeft(int** board, bool& hasChanged) {
     for (int i = 0; i < dimension; i++) {
         for (int j = 0; j < dimension - 1; j++) {
             if (board[i][j] && board[i][j] == board[i][j + 1]) {
@@ -190,11 +221,12 @@ bool hasEmptyTile(int** board) {
 }
 
 // TODO cout score
-void keyPressed(char key, int** board) {
+void makeMove(char key, int** board) {
     bool hasChanged = false;
 
     //key from the keyboard as for an operation - up, down, left, right
     switch (key) {
+
         // move up
         case 'w': {
             // slide up all the existing numbers on the board
@@ -267,14 +299,6 @@ void printBoard(int** board) {
     }
 }
 
-// free dynamically allocated memory
-void deleteBoard(int** board) {
-    for (size_t i = 0; i < dimension; i++) {
-        delete[] board[i];
-    }
-    delete[] board;
-}
-
 int main() {
     char nickname[100];
     int menu;
@@ -293,13 +317,7 @@ int main() {
             startGame(nickname);
 
             // create board
-            int** board = new int*[dimension];
-            for (size_t i = 0; i < dimension; i++) {
-                board[i] = new int[dimension];
-                for (size_t j = 0; j < dimension; j++) {
-                    board[i][j] = 0;
-                }
-            }
+            int** board = createMatrix(dimension, dimension);
 
             // add the very first number
             addRandomNum(board);
@@ -311,14 +329,14 @@ int main() {
 
                 char key;
                 cin >> key;
-                keyPressed(key, board);
+                makeMove(key, board);
 
                 if (key == 'q') {
                     break;
                 }
             }
 
-            deleteBoard(board);
+            deleteMatrix(board, dimension);
         }
             break;
 
